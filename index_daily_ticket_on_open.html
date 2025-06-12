@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>クレ得！！</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body{margin:0;padding:1em;font-family:sans-serif;background:#f9f9f9;color:#333;}
+    header{text-align:center;font-size:2em;margin-bottom:1em;}
+    header .crane{display:inline-block;font-style:italic;color:#555;margin-right:0.2em;}
+    header .red{color:red;}
+    .ticket-section{border-top:1px solid #ccc;margin-top:1em;padding-top:1em;}
+    .label{font-weight:bold;font-size:0.9em;margin-bottom:0.5em;}
+    .ticket-box{border:2px solid #007bff;border-radius:10px;padding:1em;margin-bottom:1em;background:#e6f0ff;}
+    .ticket-box button{margin-top:0.5em;padding:0.5em 1em;font-size:1em;}
+    .history-entry{font-size:0.85em;margin-bottom:0.5em;}
+
+.history-entry.daily { color: blue; }
+.history-entry.used { color: black; }
+
+    .see-all{color:blue;text-decoration:underline;cursor:pointer;font-size:0.9em;}
+    .confirm-page{display:none;text-align:center;margin-top:2em;}
+    #no-ticket-msg{color:#a00;font-weight:bold;}
+  </style>
+</head>
+<body>
+  <header><span class="crane">🤖</span>クレ<span class="red">得</span>！！</header>
+
+  <div id="main-page">
+    <div class="ticket-section">
+      <div class="label">プレイチケット数</div>
+      <div id="ticket-area"></div>
+      <div id="no-ticket-msg" style="display:none;">使えるチケットはありません。</div>
+    </div>
+
+    <div class="ticket-section">
+      <div class="label">チケット消費履歴</div>
+      <div id="history"></div>
+      <div id="see-all" class="see-all" style="display:none;" onclick="seeAllHistory()">すべての履歴を確認</div>
+    </div>
+  </div>
+
+  <div id="confirm-page" class="confirm-page">
+    <p style="font-size:0.9em">こちらのチケットを使用しますか？</p>
+    <button onclick="useTicket()">はい</button>
+    <button onclick="cancelUse()">いいえ</button>
+  </div>
+
+  <script>
+    let tickets = [
+      { name: "デイリーサービス券", count: 0, expire: "2025-06-12" },
+      { name: "雨の日クーポン2回増加", count: 2, expire: "2025-06-15" }
+    ];
+    let history = [];
+
+    function formatDate(dateStr) {
+      const days = ["日", "月", "火", "水", "木", "金", "土"];
+      const d = new Date(dateStr);
+      return `${d.getMonth()+1}月${d.getDate()}日(${days[d.getDay()]})`;
+    }
+
+    function isExpired(dateStr) {
+      const now = new Date();
+      const exp = new Date(dateStr + "T23:59:59");
+      return now > exp;
+    }
+
+    function renderTickets() {
+      const area = document.getElementById("ticket-area");
+      area.innerHTML = "";
+
+      // 有効期限切れを除外
+      tickets = tickets.filter(t => !isExpired(t.expire));
+
+      if(tickets.length === 0){
+        document.getElementById("no-ticket-msg").style.display = "block";
+        return;
+      }
+
+      document.getElementById("no-ticket-msg").style.display = "none";
+
+      tickets.forEach((t, i) => {
+        const box = document.createElement("div");
+        box.className = "ticket-box";
+        box.innerHTML = `<strong>${t.name} ${formatDate(t.expire)}まで 残り${t.count}枚</strong><br><button onclick="confirmUse(${i})">使う</button>`;
+        area.appendChild(box);
+      });
+    }
+
+    function renderHistory() {
+      const h = document.getElementById("history");
+      h.innerHTML = "";
+      history.slice(0, 10).forEach(e => {
+        const div = document.createElement("div");
+        div.className = "history-entry";
+        div.textContent = e;
+        h.appendChild(div);
+      });
+      document.getElementById("see-all").style.display = history.length > 10 ? "block" : "none";
+    }
+
+    function confirmUse(i) {
+      sessionStorage.setItem("useIndex", i);
+      document.getElementById("main-page").style.display = "none";
+      document.getElementById("confirm-page").style.display = "block";
+    }
+
+    function useTicket() {
+      const i = parseInt(sessionStorage.getItem("useIndex"));
+      const ticket = tickets[i];
+      if (ticket.count > 0) {
+        ticket.count--;
+        const now = new Date();
+        history.unshift(`${ticket.name} を使用 - ${now.getMonth()+1}月${now.getDate()}日 ${now.getHours()}時${now.getMinutes()}分`);
+        if (ticket.count === 0) {
+          tickets.splice(i, 1); // 削除
+        }
+      }
+      document.getElementById("main-page").style.display = "block";
+      document.getElementById("confirm-page").style.display = "none";
+      renderTickets();
+      renderHistory();
+distributeDailyTicketOnce();
+
+    // ページを開いたときにデイリーサービス券を即時配布（当日未配布なら）
+    function distributeDailyTicketOnce() {
+      const now = new Date();
+      const today = now.toISOString().slice(0, 10);
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const lastGiven = localStorage.getItem("lastDailyGiven");
+
+      // 00:00〜23:55 の間のみ配布対象
+      if (currentHour === 23 && currentMinute > 55) return;
+
+      if (lastGiven !== today + "_onopen") {
+        const ticket = tickets.find(t => t.name === "デイリーサービス券");
+        if (ticket) {
+          ticket.count += 1;
+          ticket.expire = today + "T23:59:00";
+          localStorage.setItem("lastDailyGiven", today + "_onopen");
+
+          const msg = `${ticket.name} を獲得 - ${now.getMonth()+1}月${now.getDate()}日 ${now.getHours()}時${now.getMinutes()}分`;
+          history.unshift(msg);
+
+          renderTickets();
+          renderHistory();
+distributeDailyTicketOnce();
+        }
+      }
+    } // 30秒ごとにチェック // 30秒ごとにチェック // 30秒ごとにチェック
+
+
+    // 1分ごとに「1回増加」チケットを+1する
+    setInterval(() => {
+      const ticket = tickets.find(t => t.name === "1回増加");
+      if (ticket) {
+        ticket.count++;
+        renderTickets();
+      }
+    }, 60000); // 60000ms = 1分
+
+    }
+
+    function cancelUse() {
+      document.getElementById("main-page").style.display = "block";
+      document.getElementById("confirm-page").style.display = "none";
+    }
+
+    function seeAllHistory() {
+      alert(history.join("\n") || "履歴がありません。");
+    }
+
+    renderTickets();
+    renderHistory();
+distributeDailyTicketOnce();
+
+    // ページを開いたときにデイリーサービス券を即時配布（当日未配布なら）
+    function distributeDailyTicketOnce() {
+      const now = new Date();
+      const today = now.toISOString().slice(0, 10);
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const lastGiven = localStorage.getItem("lastDailyGiven");
+
+      // 00:00〜23:55 の間のみ配布対象
+      if (currentHour === 23 && currentMinute > 55) return;
+
+      if (lastGiven !== today + "_onopen") {
+        const ticket = tickets.find(t => t.name === "デイリーサービス券");
+        if (ticket) {
+          ticket.count += 1;
+          ticket.expire = today + "T23:59:00";
+          localStorage.setItem("lastDailyGiven", today + "_onopen");
+
+          const msg = `${ticket.name} を獲得 - ${now.getMonth()+1}月${now.getDate()}日 ${now.getHours()}時${now.getMinutes()}分`;
+          history.unshift(msg);
+
+          renderTickets();
+          renderHistory();
+distributeDailyTicketOnce();
+        }
+      }
+    } // 30秒ごとにチェック // 30秒ごとにチェック // 30秒ごとにチェック
+
+
+    // 1分ごとに「1回増加」チケットを+1する
+    setInterval(() => {
+      const ticket = tickets.find(t => t.name === "1回増加");
+      if (ticket) {
+        ticket.count++;
+        renderTickets();
+      }
+    }, 60000); // 60000ms = 1分
+
+  </script>
+</body>
+</html>
