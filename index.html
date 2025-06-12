@@ -4,26 +4,76 @@
 <head>
     <meta charset="UTF-8">
     <title>クレ得！！</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {{ font-family: sans-serif; background: #f5f5f5; padding: 20px; }}
+        .ticket {{ background: white; border-radius: 8px; padding: 10px; margin: 10px 0; }}
+        button {{ margin-top: 5px; }}
+    </style>
 </head>
 <body>
-    <div class="header">
-        <h1><span class="kure">クレ</span><span class="toku">得！！</span></h1>
-    </div>
-    <div class="ticket-section">
-        <hr>
-        <p class="ticket-count">プレイチケット数</p>
-        <div class="ticket-box">
-            <span class="ticket-label">1回増加</span>
-            <span id="ticket-count-display">残り15枚</span>
-        </div>
-        <button onclick="useTicket()">使用する</button>
-    </div>
-    <div class="history-section">
-        <h2>チケット使用履歴</h2>
-        <ul id="history-list"></ul>
-        <button onclick="window.location.href='history.html'">すべての履歴を確認</button>
-    </div>
-    <script src="script.js"></script>
+    <h1>プレイチケット</h1>
+    <div id="ticket-list"></div>
+
+    <h2>使用履歴</h2>
+    <ul id="history"></ul>
+
+    <script>
+        const tickets = [{'name': '1回増加チケット', 'count': 15, 'expire': '2025-06-16'}, {'name': '雨の日クーポン2回増加', 'count': 2, 'expire': '2025-06-20'}];
+        const ticketList = document.getElementById("ticket-list");
+        const historyList = document.getElementById("history");
+
+        const today = new Date();
+
+        function saveHistory(ticketName) {{
+            const timestamp = new Date().toLocaleString();
+            const record = `${{ticketName}} を使用 - ${{timestamp}}`;
+            const li = document.createElement("li");
+            li.textContent = record;
+            historyList.appendChild(li);
+
+            const past = JSON.parse(localStorage.getItem("history") || "[]");
+            past.push(record);
+            localStorage.setItem("history", JSON.stringify(past));
+        }}
+
+        function loadHistory() {{
+            const past = JSON.parse(localStorage.getItem("history") || "[]");
+            for (const item of past) {{
+                const li = document.createElement("li");
+                li.textContent = item;
+                historyList.appendChild(li);
+            }}
+        }}
+
+        function createTicketElement(ticket) {{
+            const expDate = new Date(ticket.expire);
+            if (today > expDate) return null;
+
+            const container = document.createElement("div");
+            container.className = "ticket";
+            container.textContent = `${{ticket.name}}　${{ticket.expire}} まで　残り ${{ticket.count}}枚`;
+
+            const useButton = document.createElement("button");
+            useButton.textContent = "このチケットを使用しますか？";
+            useButton.onclick = () => {{
+                if (ticket.count > 0) {{
+                    ticket.count -= 1;
+                    container.textContent = `${{ticket.name}}　${{ticket.expire}} まで　残り ${{ticket.count}}枚`;
+                    container.appendChild(useButton);
+                    saveHistory(ticket.name);
+                }}
+            }};
+
+            container.appendChild(useButton);
+            return container;
+        }}
+
+        for (const t of tickets) {{
+            const el = createTicketElement(t);
+            if (el) ticketList.appendChild(el);
+        }}
+
+        loadHistory();
+    </script>
 </body>
 </html>
