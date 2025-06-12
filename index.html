@@ -2,28 +2,34 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>クレ得！！</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>クレ得！！</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f0f0; padding: 2em; }
+    .ticket { border: 1px solid #ccc; background: white; padding: 1em; margin-bottom: 1em; border-radius: 8px; }
+    button { padding: 0.5em 1em; }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1><span class="kure">クレ</span><span class="toku">得！！</span></h1>
-    </div>
-    <div class="ticket-section">
-        <hr>
-        <p class="ticket-count">プレイチケット数</p>
-        <div class="ticket-box">
-            <span class="ticket-label">1回増加</span>
-            <span id="ticket-count-display">残り15枚</span>
-        </div>
-        <button onclick="useTicket()">使用する</button>
-    </div>
-    <div class="history-section">
-        <h2>チケット使用履歴</h2>
-        <ul id="history-list"></ul>
-        <button onclick="window.location.href='history.html'">すべての履歴を確認</button>
-    </div>
-    <script src="script.js"></script>
+  <h1>プレイチケット一覧</h1>
+  <div class="ticket">
+    <h2>雨の日クーポン2回増加</h2>
+    <p>残り <span id="rain-count">2</span> 枚</p>
+    <button onclick="useRainCoupon()">使用する</button>
+  </div>
+  <script>
+    let rainCoupon = 2;
+    function useRainCoupon() {
+      if (rainCoupon <= 0) {
+        alert("使えるチケットはありません。");
+        return;
+      }
+      if (confirm("こちらのチケットを使用しますか？")) {
+        rainCoupon--;
+        document.getElementById("rain-count").innerText = rainCoupon;
+        alert("雨の日クーポン2回増加を使用しました。");
+      }
+    }
+  </script>
 </body>
 </html>
