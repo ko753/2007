@@ -2,59 +2,28 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>クレ得！！</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
-    .ticket { background: white; padding: 10px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .expired { color: red; text-decoration: line-through; }
-  </style>
+    <meta charset="UTF-8">
+    <title>クレ得！！</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>プレイチケット</h1>
-  <div id="ticketList"></div>
-  <script>
-    const tickets = [
-      {
-        name: "1回増加チケット",
-        count: 15,
-        expiry: "2025-06-16"
-      },
-      {
-        name: "雨の日クーポン2回増加",
-        count: 2,
-        expiry: "2025-06-20"
-      }
-    ];
-
-    function formatDateJP(dateStr) {
-      const days = ["日", "月", "火", "水", "木", "金", "土"];
-      const d = new Date(dateStr);
-      const day = days[d.getDay()];
-      return `${d.getMonth() + 1}月${d.getDate()}日(${day})`;
-    }
-
-    function renderTickets() {
-      const today = new Date();
-      const list = document.getElementById("ticketList");
-      list.innerHTML = "";
-
-      tickets.forEach(t => {
-        const expiryDate = new Date(t.expiry + "T23:59:59");
-        if (today > expiryDate) return; // 有効期限切れは表示しない
-
-        const div = document.createElement("div");
-        div.className = "ticket";
-        div.innerText = `${t.name}　${formatDateJP(t.expiry)}まで　残り${t.count}枚`;
-        list.appendChild(div);
-      });
-
-      if (list.innerHTML === "") {
-        list.innerHTML = "<p>使えるチケットはありません。</p>";
-      }
-    }
-
-    renderTickets();
-  </script>
+    <div class="header">
+        <h1><span class="kure">クレ</span><span class="toku">得！！</span></h1>
+    </div>
+    <div class="ticket-section">
+        <hr>
+        <p class="ticket-count">プレイチケット数</p>
+        <div class="ticket-box">
+            <span class="ticket-label">1回増加</span>
+            <span id="ticket-count-display">残り15枚</span>
+        </div>
+        <button onclick="useTicket()">使用する</button>
+    </div>
+    <div class="history-section">
+        <h2>チケット使用履歴</h2>
+        <ul id="history-list"></ul>
+        <button onclick="window.location.href='history.html'">すべての履歴を確認</button>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
