@@ -1,0 +1,23 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>使用履歴</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>チケット使用履歴一覧</h1>
+    <ul id="full-history-list"></ul>
+    <button onclick="window.location.href='index.html'">戻る</button>
+    <script>
+        const allHistory = JSON.parse(localStorage.getItem("ticketHistory")) || [];
+        const fullList = document.getElementById("full-history-list");
+        allHistory.forEach(item => {
+            const li = document.createElement("li");
+            li.textContent = item;
+            fullList.appendChild(li);
+        });
+    </script>
+</body>
+</html>

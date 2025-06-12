@@ -1,0 +1,37 @@
+
+body {
+    font-family: sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+}
+
+.header h1 {
+    font-size: 2em;
+}
+
+.kure {
+    background: url('crane.png') no-repeat left center;
+    background-size: contain;
+    padding-left: 40px;
+}
+
+.toku {
+    color: red;
+}
+
+.ticket-box {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ccc;
+}
+
+.ticket-count {
+    font-size: 14px;
+}
+
+.history-section {
+    margin-top: 20px;
+}
